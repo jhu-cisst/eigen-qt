@@ -85,7 +85,7 @@ jobs:
         run: cmake --install build --config Release --prefix "$env:RUNNER_TEMP/eigenqt"
       - name: Consumer test
         run: |
-          cmake -S tests/consumer -B build-consumer -A x64 -DCMAKE_PREFIX_PATH="$env:RUNNER_TEMP/eigenqt" -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          cmake -S tests/consumer -B build-consumer -A x64 -DCMAKE_PREFIX_PATH="$env:RUNNER_TEMP/eigenqt;$env:CMAKE_PREFIX_PATH" -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           cmake --build build-consumer --config Release --parallel 2
           $env:PATH = "$env:RUNNER_TEMP/eigenqt/bin;$env:PATH"
           ctest --test-dir build-consumer -C Release --output-on-failure
