@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: MIT
+cmake_minimum_required(VERSION 3.16)
+project(EigenQtConsumer LANGUAGES CXX)
+find_package(EigenQt 0.1 REQUIRED)
+if(NOT TARGET Eigen3::Eigen)
+  message(FATAL_ERROR "EigenQt must discover its required Eigen dependency")
+endif()
+add_executable(consumer main.cpp)
+target_link_libraries(consumer PRIVATE EigenQt::Geometry)
+enable_testing()
+add_test(NAME InstalledConsumer COMMAND consumer)
+set_tests_properties(InstalledConsumer PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

@@ -1,0 +1,91 @@
+# SPDX-License-Identifier: MIT
+name: Build and test
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  linux:
+    runs-on: ubuntu-26.04
+    strategy:
+      fail-fast: false
+      matrix:
+        qt: [5, 6]
+        shared: ['ON', 'OFF']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qtbase5-dev libqt5opengl5-dev qt6-base-dev libqt6opengl6-dev libeigen3-dev
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DEIGENQT_QT_VERSION=${{ matrix.qt }} -DBUILD_SHARED_LIBS=${{ matrix.shared }} -DEIGENQT_BUILD_TESTS=ON -DEIGENQT_BUILD_EXAMPLES=ON
+      - name: Build
+        run: cmake --build build --parallel 2
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Install
+        run: cmake --install build --prefix "$RUNNER_TEMP/eigenqt"
+      - name: Consumer test
+        run: |
+          cmake -S tests/consumer -B build-consumer -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/eigenqt"
+          cmake --build build-consumer --parallel 2
+          ctest --test-dir build-consumer --output-on-failure
+  macos:
+    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        shared: ['ON', 'OFF']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencies
+        run: brew install qt eigen
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DEIGENQT_QT_VERSION=6 -DBUILD_SHARED_LIBS=${{ matrix.shared }} -DEIGENQT_BUILD_TESTS=ON -DEIGENQT_BUILD_EXAMPLES=ON -DCMAKE_PREFIX_PATH="$(brew --prefix qt);$(brew --prefix eigen)"
+      - name: Build
+        run: cmake --build build --parallel 2
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Install
+        run: cmake --install build --prefix "$RUNNER_TEMP/eigenqt"
+      - name: Consumer test
+        run: |
+          cmake -S tests/consumer -B build-consumer -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/eigenqt;$(brew --prefix qt);$(brew --prefix eigen)"
+          cmake --build build-consumer --parallel 2
+          ctest --test-dir build-consumer --output-on-failure
+  windows:
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        qt: [5, 6]
+        shared: ['ON', 'OFF']
+        include:
+          - qt: 5
+            version: '5.15.2'
+            arch: win64_msvc2019_64
+          - qt: 6
+            version: '6.8.3'
+            arch: win64_msvc2022_64
+    steps:
+      - uses: actions/checkout@v4
+      - name: Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+          cache: true
+      - name: Eigen
+        run: vcpkg install eigen3:x64-windows
+      - name: Configure
+        run: cmake -S . -B build -A x64 -DEIGENQT_QT_VERSION=${{ matrix.qt }} -DBUILD_SHARED_LIBS=${{ matrix.shared }} -DEIGENQT_BUILD_TESTS=ON -DEIGENQT_BUILD_EXAMPLES=ON -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+      - name: Build
+        run: cmake --build build --config Release --parallel 2
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+      - name: Install
+        run: cmake --install build --config Release --prefix "$env:RUNNER_TEMP/eigenqt"
+      - name: Consumer test
+        run: |
+          cmake -S tests/consumer -B build-consumer -A x64 -DCMAKE_PREFIX_PATH="$env:RUNNER_TEMP/eigenqt" -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          cmake --build build-consumer --config Release --parallel 2
+          $env:PATH = "$env:RUNNER_TEMP/eigenqt/bin;$env:PATH"
+          ctest --test-dir build-consumer -C Release --output-on-failure

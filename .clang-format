@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: MIT
+BasedOnStyle: LLVM
+IndentWidth: 4
+AccessModifierOffset: -4
+ColumnLimit: 100
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterControlStatement: Never
+  AfterFunction: true
+  AfterNamespace: false
+  AfterStruct: true
+  AfterEnum: true
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+InsertBraces: true
+PointerAlignment: Right
+NamespaceIndentation: None
+SortIncludes: Never
+SpaceBeforeParens: ControlStatements

@@ -1,0 +1,5 @@
+/* SPDX-License-Identifier: MIT
+ * SPDX-FileCopyrightText: 2026 EigenQt contributors */
+.wy-nav-content { max-width: 1040px; }
+.rst-content .figure img { border: 1px solid #dce1e6; border-radius: 4px; }
+.rst-content .figure .caption { margin-top: 0.7rem; }

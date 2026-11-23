@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: 2026 EigenQt contributors
+Sphinx==7.2.6
+sphinx-rtd-theme==3.1.0
